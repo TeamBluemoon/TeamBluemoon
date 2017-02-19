@@ -1,0 +1,200 @@
+import java.io.IOException;
+
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
+import org.apache.hadoop.fs.Path;
+import org.apache.hadoop.io.IntWritable;
+import org.apache.hadoop.io.Text;
+import org.apache.hadoop.mapreduce.Job;
+import org.apache.hadoop.mapreduce.lib.input.FileInputFormat;
+import org.apache.hadoop.mapreduce.lib.output.FileOutputFormat;
+
+public class WordCount {
+
+	public static void main(String[] args) {
+
+		if (args.length < 2) {
+
+			System.err.println("input path ");
+
+		}
+
+		try {
+
+			Job job = new Job();
+
+			job.setJobName("Word Count");
+			
+			Log log = LogFactory.getLog(WordCount.class);
+			log.info("job name : "+job.getJobName());
+
+			// set file input/output path
+
+			FileInputFormat.addInputPath(job, new Path(args[1]));
+			
+			//Log log = LogFactory.getLog(WordCount.class);
+			log.info("input path : "+args[1]);
+
+			FileOutputFormat.setOutputPath(job, new Path(args[2]));
+			
+			log.info("input path : "+args[2]);
+
+			// set jar class name
+
+			job.setJarByClass(WordCount.class);
+
+			// set mapper and reducer to job
+
+			job.setMapperClass(WordCountMapper.class);
+
+			job.setReducerClass(WordCountReducer.class);
+
+			// set output key class
+
+			job.setOutputKeyClass(Text.class);
+
+			job.setOutputValueClass(IntWritable.class);
+
+			int returnValue = job.waitForCompletion(true) ? 0 : 1;
+			
+			log.info("returnValue : "+returnValue);
+
+			System.out.println(job.isSuccessful());
+
+			System.exit(returnValue);
+
+		} catch (Exception e) {
+
+			e.printStackTrace();
+
+		}
+
+	}
+
+}
+
+
+
+
+
+
+
+
+
+
+
+import java.io.IOException;
+import java.util.StringTokenizer;
+
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
+import org.apache.hadoop.io.IntWritable;
+import org.apache.hadoop.io.Text;
+import org.apache.hadoop.mapreduce.Mapper;
+
+public class WordCountMapper extends Mapper<Object, Text, Text, IntWritable> {
+
+	@Override
+	protected void map(Object key, Text value,
+			Mapper<Object, Text, Text, IntWritable>.Context context)
+
+	throws IOException, InterruptedException {
+
+		// getting the string token from the value.
+
+		StringTokenizer strTokens = new StringTokenizer(value.toString());
+		
+		Log log = LogFactory.getLog(WordCountMapper.class);
+		log.info("strTokens : "+strTokens);
+
+		// iterating the strTokens for
+
+		while (strTokens.hasMoreTokens()) {
+
+			// the word present inside the input file
+
+			String word = strTokens.nextToken();
+
+			// writing the word into context with occurrence as 1
+
+			// example: apple 1, mango 1, apple 1
+
+			context.write(new Text(word), new IntWritable(1));
+			
+			log.info("word : "+new Text(word));
+
+		}
+
+	}
+
+	@Override
+	protected void setup(Mapper<Object, Text, Text, IntWritable>.Context context)
+
+	throws IOException, InterruptedException {
+
+		System.out.println("calls only once at startup");
+		
+		
+
+	}
+
+	@Override
+	protected void cleanup(
+			Mapper<Object, Text, Text, IntWritable>.Context context)
+
+	throws IOException, InterruptedException {
+
+		System.out.println("calls only once at end");
+
+	}
+
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+import java.io.IOException;
+
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
+import org.apache.hadoop.io.IntWritable;
+import org.apache.hadoop.io.Text;
+import org.apache.hadoop.mapreduce.Reducer;
+
+public class WordCountReducer extends
+		Reducer<Text, IntWritable, Text, IntWritable> {
+
+	@Override
+	protected void reduce(Text key, Iterable<IntWritable> values,
+
+	Reducer<Text, IntWritable, Text, IntWritable>.Context context)
+			throws IOException, InterruptedException {
+
+		int noOfFrequency = 0;
+
+		for (IntWritable occurance : values) {
+
+			noOfFrequency += occurance.get();
+
+		}
+		context.write(key, new IntWritable(noOfFrequency));
+		
+		Log log = LogFactory.getLog(WordCountReducer.class);
+		log.info("key : "+noOfFrequency);
+	}
+}
