@@ -1,0 +1,48 @@
+hive> create table words (word string) row format delimited fields terminated by ' ' ;
+hive> !hadoop fs -put /user/Ekanta/sws/file1.txt /user/hive/warehouse/file1.txt;
+hive> select count (word) from words;
+
+
+hive>craete databse stocks;
+hive>show databases;
+hive>use stocks;
+
+set hive.cli.print.current.db = true;(set environment varibale fro this session to see the current db)
+
+drop databse stocks;
+hive> craete table Movies (movieId int, title string,geners string) row format delimited fields terminated by ',';
+hive> !hadoop fs -put movies.csv /user/hive/warehouse/movies;
+hive> describe extended Movies;  
+
+hive> create table emp_struct (id int,name struct<fname:string,mname:string,lname:string>) 
+	  row format delimited fields terminated by ',' collection items terminated by '$';
+hive> !hadoop fs -put emp_struct /user/hive/warehouse/emp_struct;
+hive> select * from emp_struct;
+hive>select name.fname from emp_struct;
+
+hive> create table emp_struct_map (id int,name struct<fname:string,mname:string,lname:string>,phone map<string,bigint>) 
+      row format delimited fields terminated by ',' collection items terminated by '$' map keys terminated by '#';
+
+hive> !hadoop fs -put emp_struct_map /user/hive/warehouse/emp_struct_map;
+hive> select name.fname,phone["home"] from emp_struct_map;
+
+
+hive> create table emp_struct_map_array (id int,name struct<fname:string,mname:string,lname:string>,phone map<string,bigint>,email array<string>) 
+      row format delimited fields terminated by ',' collection items terminated by '$' map keys terminated by '#';
+
+hive> !hadoop fs -put emp_struct_map_array /user/hive/warehouse/emp_struct_map_array;
+hive> select name.fname,phone["home"],email[0] from emp_struct_map_array;
+
+
+hive>create table ratings (userId int,movieId int,rating float,timestamp bigint) row format delimited fields terminated by ',';
+hive>!hadoop fs -put ratings.csv /user/hive/warehouse/ratings; --load data local inpath 'ratings.csv' overwrite into table ratings;
+hive>select m.title,r.rating from movies m join ratings r on m.movieId=r.movieId;
+
+
+hive>select upper(title) from movies limit 10;
+
+hive>select m.title,avg(r.rating) from movies m join ratings r on m.movieid = r.movieid group by m.title order by title;
+
+
+
+
