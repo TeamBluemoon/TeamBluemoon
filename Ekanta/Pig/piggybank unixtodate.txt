@@ -1,0 +1,6 @@
+DEFINE UnixToISO org.apache.pig.piggybank.evaluation.datetime.convert.UnixToISO();
+
+file2 = LOAD 'timestamps.txt' USING PigStorage(',') AS (insertDate:long,
+changeDate:long,a4);
+myF3 = FOREACH file2 GENERATE ISOToYear(UnixToISO(insertDate*1000));
+dump myF3;
